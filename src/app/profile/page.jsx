@@ -1,22 +1,71 @@
-import User from "../components/data/User"
+"use client"
 import Header from "../components/header/Header";
 import Footer from "../components/footer/Footer";
+import Gear from "../../../public/images/Gear.gif"
+import {UserProfile} from './user-profile'
 
 import "./index.css"
+import { useState, useEffect } from "react";
 
 
-export default function Profile (){
+
+export default  function Profile (){
+    const [ user, setUser ] = useState(null)
+    const retrieveAccessToken = () =>{
+        const cookieStore = document.cookie;
+        const retrievedCookie = cookieStore.match(/refreshToken=([^;]*)/)
+        return retrievedCookie[1];
+
+
+    }
+    
+    
+
+    useEffect  (()=>{
+        const token = retrieveAccessToken();
+        console.log(token);
+        async function fetchUser (){
+            try {
+                const response = await fetch    ("https://dummyjson.com/user/me", {
+                    method: "GET",
+                    headers: {
+                      "Content-Type": "application/json",
+                      "Authorization": `Bearer ${token}`,
+                    },
+                    
+                  });
+
+                // console.log(response);
+                if(response.ok){
+                    const data = await response.json();
+                    console.log(data);
+                    setUser(data);
+
+
+                }
+            } catch (error) {
+                console.error('Something went wrong: ', error)  
+            }
+        }
+
+        fetchUser();
+    }, [] )
+    
+    
     return (
-        <>
+        <div className="page-wrapper">
         <Header />
             <div className="profile-card">
-                <h1>Name: {User.name}</h1>
-                <h1>Last Name: {User.lastName}</h1>
-                <p>Email: {User.email}</p>
-                <img src={User.Image.src} style={{width:"250px"}} alt="User-image"></img>
-                
+            {user ? <>
+            <div className="default-layout">
+                <UserProfile user={user}/>
+                <Footer />    
             </div>
-        <Footer />
-        </>
+                {/* <div>{user.firstName}</div> */}
+            </>: 
+            <div>Loading<img src={Gear.src} alt='loading icon'></img></div>}
+            </div>
+        </div>
+
     )
 }
